@@ -1,0 +1,6 @@
+/.ipynb_checkpoints
+/d_venv
+/data
+/results/predictions
+**/__pycache__**
+**/.ipynb_checkpoints/

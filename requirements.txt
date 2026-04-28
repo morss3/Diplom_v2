@@ -1,0 +1,12 @@
+numpy
+pandas
+scikit-learn
+gensim
+sentence-transformers
+torch
+ipykernel
+notebook
+matplotlib
+seaborn
+streamlit
+plotly.express
