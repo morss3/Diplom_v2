@@ -164,6 +164,8 @@ def main(dataset_key):
     xv = bert.encode(X_test_raw, show_progress_bar=True)
     duration = time.time() - start
     save_vec("bert", xt, xv, duration, paths)
+    # Проверяем размеры сохраненных эмбеддингов
+    # Проверяем размеры сохраненных эмбеддингов
 
     # Сохраняем все замеры времени в файл
     with open(f"{paths['VECTORS']}/vectorization_time.json", "w") as f:
@@ -178,9 +180,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "dataset",
         type=str,
-        choices=["20newsgroups", "ag_news", "imdb"],
+        choices=["20newsgroups", "ag_news", "imdb", "udmurt_media"],
         help="Выберите датасет: 20newsgroups, ag_news или imdb",
     )
 
     args = parser.parse_args()
     main(args.dataset)
+

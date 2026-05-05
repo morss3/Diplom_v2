@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.datasets import fetch_20newsgroups
+import re
 
 def get_clean_20newsgroups():
     data = fetch_20newsgroups(subset='all', remove=('headers', 'footers', 'quotes'))
@@ -32,7 +33,15 @@ def get_target_names(dataset_key):
             "negative",
             "positive"
         ]
-
+    elif dataset_key == "udmurt_media":
+        df = pd.read_csv("../data/raw/udmurt_media/udmurt_media.csv")
+        # фикс категории
+        df["category"] = df["category"].replace({
+            "Ужбергатон": "Экономика но коньдон"
+        })
+        # берём уникальные и сортируем (ВАЖНО — как в get_udmurt_media)
+        categories = sorted(df["category"].dropna().unique())
+        return categories
     else:
         raise ValueError(f"Неизвестный датасет: {dataset_key}")
 
@@ -64,6 +73,40 @@ def get_imdb():
 
     return df["review"].tolist(), df["sentiment"].values
 
+def get_udmurt_media():
+    df = pd.read_csv("../data/raw/udmurt_media/udmurt_media.csv")
+
+    # --- фикс кривой категории ---
+    df["category"] = df["category"].replace({
+        "Ужбергатон": "Экономика но коньдон"
+    })
+
+    # --- базовая очистка ---
+    df = df.dropna()
+    df = df[df["content"].str.strip() != ""]
+
+    # --- текст ---
+    df["text"] = df["title"].fillna("") + " " + df["content"]
+
+    # чистка переносов и пробелов
+    df["text"] = df["text"].apply(
+        lambda x: re.sub(r"\s+", " ", x.replace("\n", " ")).strip()
+    )
+
+    df = df[df["text"].str.strip() != ""]
+
+    # --- СТАБИЛЬНЫЙ порядок категорий ---
+    categories = sorted(df["category"].unique())
+
+    cat2id = {cat: i for i, cat in enumerate(categories)}
+    df["label"] = df["category"].map(cat2id)
+
+    # вывод для контроля
+    print("\n📊 Categories mapping:")
+    for cat, idx in cat2id.items():
+        print(f"{idx}: {cat}")
+
+    return df["text"].tolist(), df["label"].values
 def load_dataset(name):
     if name == "20newsgroups":
         data = get_clean_20newsgroups()
@@ -74,3 +117,6 @@ def load_dataset(name):
 
     elif name == "imdb":
         return get_imdb()
+    
+    elif name == "udmurt_media":
+        return get_udmurt_media()

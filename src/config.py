@@ -35,6 +35,7 @@ DATASETS = {
     "20 Newsgroups": {"key": "20newsgroups", "n_classes": 20},
     "AG News": {"key": "ag_news", "n_classes": 4},
     "IMDB": {"key": "imdb", "n_classes": 2},
+    "Udmurt media": {"key": "udmurt_media", "n_classes": 13},
 }
 
 

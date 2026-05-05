@@ -39,7 +39,7 @@ task = st.sidebar.selectbox("Задача", ["Классификация", "Кл
 st.sidebar.info(f"Текущий датасет: {dataset_name}")
 
 if task == "Классификация":
-    st.title("Анализ методов в задаче классификации в: dataset_name" )
+    st.title(f"Анализ методов в задаче классификации в: {dataset_name}" )
     top_1, top_2 = get_top_methods("classification", dataset_key)
 
     # 1. Сравнительная таблица
