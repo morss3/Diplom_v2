@@ -290,10 +290,7 @@ def jsonl_to_csv(input_file, output_file):
         writer.writerows(records)
 
     print(f"CSV: {output_file} ({len(records)} записей)")
-
-# =====================================================
-# 🚀 MAIN
-# =====================================================
+    
 if __name__ == "__main__":
     print("UDMURT.MEDIA PARSER\n")
 

@@ -17,7 +17,6 @@ def get_cmap(n_classes):
         return plt.cm.hsv.resampled(n_classes)
 
 
-
 def get_pca_plot(X, y, target_names, method_name):
     """PCA с корректными цветами (решение проблемы розового)"""
     pca = PCA(n_components=2, random_state=42)
@@ -117,7 +116,6 @@ def get_classification_report_df(y_test, y_pred, target_names):
     return pd.DataFrame(report_dict).transpose()
 
 
-
 # Адаптивные размеры подвыборки для t-SNE в зависимости от датасета
 def get_tsne_sample_size(n_samples: int) -> int:
     """
@@ -139,8 +137,9 @@ def compute_tsne_sample(X, dataset=None, max_samples=None):
 
     if X.shape[0] > max_samples:
         idx = np.random.choice(X.shape[0], max_samples, replace=False)
+        print(f"t-SNE: выбрано {max_samples} точек из {X.shape[0]} (подвыборка)")
         return X[idx], idx
-    print(f"Max_samples = {max_samples}")
+    print(f"t-SNE: используется ВСЕ {X.shape[0]} точек (меньше лимита {max_samples})")
     return X, None
 
 

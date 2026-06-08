@@ -18,6 +18,7 @@ from visualizer import (
 )
 from data_loader import get_target_names
 from config import *
+from vectors_loader import load_vectors
 
 
 # --- ФУНКЦИИ ОТОБРАЖЕНИЯ (Теперь они на месте!) ---
@@ -35,7 +36,8 @@ def show_pca(name, key, dataset):
         with st.spinner(f"Генерируем PCA для {name}..."):
             try:
                 # Загружаем данные для отрисовки
-                X = np.load(f"{vectors_path}/train_{key}_vectors.npy")
+                # X = np.load(f"{vectors_path}/train_{key}_vectors.npy")
+                X, _ = load_vectors(vectors_path, key, dense=True)
                 y = np.load(f"{vectors_path}/y_train.npy")
                 target_names = get_target_names(dataset)
 
@@ -156,8 +158,9 @@ def load_or_generate_cluster_plot(method_name, key, plot_type, label_type, datas
     else:
         with st.spinner(f"Генерируем {plot_type} для {method_name}..."):
             # 1. Загрузка и подготовка данных
-            X_train = np.load(f'{vectors_path}/train_{key}_vectors.npy')
-            X_test = np.load(f'{vectors_path}/test_{key}_vectors.npy')
+            # X_train = np.load(f'{vectors_path}/train_{key}_vectors.npy')
+            # X_test = np.load(f'{vectors_path}/test_{key}_vectors.npy')
+            X_train, X_test = load_vectors(vectors_path, key, dense=True)
             X_all = np.vstack([X_train, X_test])
             X_norm = normalize(X_all)
             
@@ -256,6 +259,7 @@ def display_metrics_cards(name, df):
     # Логика для КЛАССИФИКАЦИИ
     if "Accuracy" in row:
         cols[0].metric("Accuracy", f"{row['Accuracy']:.4f}")
+        cols[1].metric("F1-macro", f"{row['F1-macro']:.4f}")
         
     # Логика для КЛАСТЕРИЗАЦИИ
     elif "ARI" in row:
@@ -263,7 +267,7 @@ def display_metrics_cards(name, df):
         cols[1].metric("Silhouette", f"{row['Silhouette']:.4f}")
 
     # Общая метрика времени для обоих задач
-    total_t = row.get('Total Time', 0)
+    total_t = row.get('Total Time (s)', 0)
     cols[2].metric("Время (сек)", f"{total_t:.2f}")
 
 
@@ -276,34 +280,34 @@ def display_efficiency_chart(df):
     # Определяем, какую метрику качества использовать
     y_axis = "Accuracy" if "Accuracy" in df.columns else "ARI"
     
-    if y_axis not in df.columns or "Total Time" not in df.columns:
+    if y_axis not in df.columns or "Total Time (s)" not in df.columns:
         st.warning("Недостаточно данных для построения графика эффективности.")
         return
 
     # Создаем интерактивный Scatter-plot
     fig = px.scatter(
         df,
-        x="Total Time",
+        x="Total Time (s)",
         y=y_axis,
-        text="Method",
         size=[10] * len(df), # одинаковый размер точек
         color="Method",
         hover_name="Method",
         labels={
-            "Total Time": "Общее время (сек)",
+            "Total Time (s)": "Общее время (сек)",
             y_axis: f"Качество ({y_axis})"
         },
         title=f"Сравнение методов: {y_axis} относительно времени работы"
     )
 
     # Настраиваем отображение текста (чтобы названия не перекрывали точки)
-    fig.update_traces(textposition='top center')
+    # fig.update_traces(textposition='top center')
     
     # Делаем график аккуратным
     fig.update_layout(
         height=500,
         margin=dict(l=20, r=20, t=50, b=20),
-        showlegend=False
+        showlegend=True,
+        legend_title_text="Методы"
     )
 
     st.plotly_chart(fig, use_container_width=True)

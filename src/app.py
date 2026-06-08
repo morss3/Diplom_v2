@@ -51,7 +51,7 @@ if task == "Классификация":
 
         # Выводим отформатированную таблицу
         st.dataframe(
-            df.style.format(precision=2).format(subset=["Accuracy"], formatter="{:.4f}"),
+            df.style.format(precision=2).format(subset=["Accuracy", "F1-macro"], formatter="{:.4f}"),
             use_container_width=True
         )
 

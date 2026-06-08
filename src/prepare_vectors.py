@@ -10,6 +10,8 @@ from gensim.models import Word2Vec, Doc2Vec
 from gensim.models.doc2vec import TaggedDocument
 from sentence_transformers import SentenceTransformer
 from sklearn.model_selection import train_test_split
+from scipy import sparse
+
 from config import get_paths
 from data_loader import load_dataset
 
@@ -18,15 +20,19 @@ vectorization_time = {}
 
 
 def save_vec(name, X_train, X_test, duration, paths):
-    """Вспомогательная функция для сохранения векторов и времени"""
-    # .npy — бинарный формат numpy.
-    np.save(f"{paths['VECTORS']}/train_{name}_vectors.npy", X_train.astype(np.float32))
-    np.save(f"{paths['VECTORS']}/test_{name}_vectors.npy", X_test.astype(np.float32))
+    """Сохранение векторов и времени"""
+    # sparse-матрицы
+    if sparse.issparse(X_train):
+        sparse.save_npz(f"{paths['VECTORS']}/train_{name}_vectors.npz", X_train)
 
-    # Сохраняем время в словарь
+        sparse.save_npz(f"{paths['VECTORS']}/test_{name}_vectors.npz", X_test)
+    # dense-вектора
+    else:
+        np.save(f"{paths['VECTORS']}/train_{name}_vectors.npy", X_train.astype(np.float32))
+        np.save(f"{paths['VECTORS']}/test_{name}_vectors.npy", X_test.astype(np.float32))
     vectorization_time[name] = duration
-    print(f"--- Метод {name} сохранен (Время: {duration:.2f} сек) ---")
 
+    print(f"--- Метод {name} сохранен (Время: {duration:.2f} сек) ---")
 
 def main(dataset_key):
     print("Загрузка данных...")
@@ -51,8 +57,10 @@ def main(dataset_key):
     for name, is_binary in [("binary", True), ("bow", False)]:
         start = time.time()
         vec = CountVectorizer(binary=is_binary, stop_words="english", max_features=3000)
-        xt = vec.fit_transform(X_train_raw).toarray()
-        xv = vec.transform(X_test_raw).toarray()
+        # xt = vec.fit_transform(X_train_raw).toarray()
+        # xv = vec.transform(X_test_raw).toarray()
+        xt = vec.fit_transform(X_train_raw)
+        xv = vec.transform(X_test_raw)
         duration = time.time() - start
         save_vec(name, xt, xv, duration, paths)
 
@@ -67,8 +75,10 @@ def main(dataset_key):
         vec = TfidfVectorizer(
             ngram_range=ngram, stop_words="english", max_features=3000
         )
-        xt = vec.fit_transform(X_train_raw).toarray()
-        xv = vec.transform(X_test_raw).toarray()
+        # xt = vec.fit_transform(X_train_raw).toarray()
+        # xv = vec.transform(X_test_raw).toarray()
+        xt = vec.fit_transform(X_train_raw)
+        xv = vec.transform(X_test_raw)
         duration = time.time() - start
         save_vec(name, xt, xv, duration, paths)
 
@@ -86,6 +96,7 @@ def main(dataset_key):
         window=5,  # Сколько слов вокруг (5 соседей слева и справа)
         min_count=2,  # Игнорируем редкие слова
         workers=4,  # Параллельные потоки (для скорости)
+        seed=42
     )
 
     # Функция усреднения
@@ -97,7 +108,7 @@ def main(dataset_key):
         return (
             np.mean(v, axis=0) if v else np.zeros(100)
         )  # если слов нет (v- пустой) возвращаем 0 вектор
-
+    
     # Создаем вектора документов
     # for каждый текст:
     # взять слова
@@ -129,6 +140,7 @@ def main(dataset_key):
         tagged,
         vector_size=100,  # размер вектора документа
         epochs=20,  # сколько раз пройтись по данным (чем больше тем лучше, но дольше)
+        seed=42
     )
     # Затем обученной модели даем новые тексты и смотрим как она его поймет
     # Используя знания модели, подбери вектор для этого текста
@@ -186,4 +198,14 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     main(args.dataset)
+
+
+
+
+
+
+
+
+
+
 
